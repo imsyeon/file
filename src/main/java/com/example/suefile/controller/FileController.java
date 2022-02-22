@@ -1,8 +1,8 @@
 package com.example.suefile.controller;
 
+import org.apache.commons.io.IOUtils;
 import org.springframework.http.*;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,38 +53,28 @@ public class FileController {
     }
 
     @PutMapping("/upload")
-    public void uploadFile(@RequestParam ("file") MultipartFile multipartFile) throws IOException {
+    public void uploadFile(@RequestParam("file") MultipartFile multipartFile) throws IOException {
 
-        String username = "username";
+        String userName = "username";
         String password = "password";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(username, password);
+        headers.setBasicAuth(userName, password);
 
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        InputStream inputStream = multipartFile.getInputStream();
+        byte[] data = IOUtils.toByteArray(inputStream);
 
-        System.out.println(headers);
+        HttpEntity<byte[]> requestEntity = new HttpEntity<>(data, headers);
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", multipartFile.getResource());
+        String url = "http://49.247.36.30:8090/revit/remote.php/dav/files/sooyeon/testfolder/" + multipartFile.getOriginalFilename();
 
-        System.out.println("byte"+multipartFile.getBytes());
-        System.out.println("리소스"+multipartFile.getResource());
-        System.out.println("이름"+multipartFile.getName());
-        System.out.println("사이즈"+multipartFile.getSize());
-        System.out.println("body"+body);
+        System.out.println("responseEntity" + requestEntity.getBody());
 
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        String url = "http://49.247.36.30:8090/revit/remote.php/dav/files/sooyeon/testfolder/"+multipartFile.getOriginalFilename();
-
-        System.out.println("responseEntity"+requestEntity.getBody());
         RestTemplate restTemplate = new RestTemplate();
-
-        ResponseEntity<String> response = restTemplate
-                .exchange(url, HttpMethod.PUT, requestEntity, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, String.class);
 
         System.out.println(response.getStatusCode());
 
     }
+
 }
