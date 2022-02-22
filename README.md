@@ -11,7 +11,5 @@
 - file upload
 - file download
 
-### ToDo
 
-- file upload 시 file 깨짐 현상 수정
 
